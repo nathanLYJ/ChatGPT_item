@@ -146,6 +146,11 @@ p {
     text-decoration: none;
     margin: 0 10px;
 }
+.icon-Chef{
+    font-size: 40px;
+    color: #ffffff;
+
+}
 
 .icon {
     width: 100px;
