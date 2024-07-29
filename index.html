@@ -6,6 +6,31 @@
     <title>NathanLYJ Blog</title>
     <!-- 공통 CSS 파일 연결 -->
     <link rel="stylesheet" href="CSS/common.css" />
+    <style>
+      /* 눈 효과 스타일 */
+      .snow {
+        position: absolute;
+        top: 0;
+        font-size: 24px;
+        opacity: 0.8;
+        animation: fall linear infinite;
+      }
+      @keyframes fall {
+        0% {
+          transform: translateY(-100px);
+        }
+        100% {
+          transform: translateY(100vh);
+        }
+      }
+      /* 눈 쌓이는 영역 스타일 */
+      #snow-pile {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+      }
+    </style>
   </head>
 
   <body>
