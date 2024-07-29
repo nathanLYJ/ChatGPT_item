@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NathanLYJ Blog</title>
+    <!-- 공통 CSS 파일 연결 -->
+    <link rel="stylesheet" href="CSS/common.css" />
+  </head>
+
+  <body>
+    <div>
+      <div class="sky" id="sky"></div>
+      <div class="container">
+        <p>Hi. I'm</p>
+        <h1>NathanLYJ</h1>
+        <!-- 텍스트 회전 효과를 위한 요소 -->
+        <h1>
+          <span
+            id="txt-rotate"
+            data-period="2000"
+            data-rotate='["Keep", "growing!"]'
+          ></span>
+        </h1>
+        <!-- 소셜 아이콘 링크 -->
+        <div class="social-icons">
+          <a href="http://127.0.0.1:7860">
+            <img
+              src="./free-animated-icon-cookbook-15578595.png"
+              class="icon"
+              alt="Chef"
+            />
+            <span class="icon-Chef">Chef</span>
+          </a>
+        </div>
+      </div>
+      <div id="snow-pile"></div>
+    </div>
+
+    <script>
+      // 페이지 로드 후 눈 효과 시작
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          // 눈 효과 관련 코드를 여기로 이동
+          const codingTerms = [
+            "var",
+            "let",
+            "const",
+            "function",
+            "if",
+            "else",
+            "for",
+            "while",
+            "return",
+            "class",
+            "import",
+            "export",
+            "{}",
+            "[]",
+            "()",
+            "=>",
+            "===",
+            "!==",
+            "&&",
+            "||",
+          ];
+
+          function createSnow() {
+            const sky = document.getElementById("sky");
+            const snow = document.createElement("div");
+            snow.className = "snow";
+            snow.style.left = `${Math.random() * 100}%`;
+            snow.textContent =
+              codingTerms[Math.floor(Math.random() * codingTerms.length)];
+            snow.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            sky.appendChild(snow);
+
+            snow.addEventListener("animationend", () => {
+              snow.remove();
+              addToSnowPile(snow.textContent);
+            });
+          }
+          // 눈 쌓기 함수
+          function addToSnowPile(text) {
+            const snowPile = document.getElementById("snow-pile");
+            const snowFlake = document.createElement("span");
+            snowFlake.textContent = text;
+            const fontSize = Math.floor(Math.random() * 9) + 12;
+            snowFlake.style.fontSize = `${fontSize}px`;
+            snowPile.appendChild(snowFlake);
+
+            if (snowPile.children.length > 100) {
+              snowPile.removeChild(snowPile.firstChild);
+            }
+
+            setTimeout(() => {
+              snowFlake.style.opacity = "0";
+              snowFlake.style.transition = "opacity 2s";
+              setTimeout(() => snowFlake.remove(), 2000);
+            }, 3000);
+          }
+          // 눈 생성 시작
+          setInterval(createSnow, 200);
+        }, 1000); // 1초 후에 눈 효과 시작
+      });
+
+      // 텍스트 회전 효과 클래스
+      var TxtRotate = function (el, toRotate, period) {
+        this.toRotate = toRotate;
+        this.el = el;
+        this.loopNum = 0;
+        this.period = parseInt(period, 10) || 2000;
+        this.txt = "";
+        this.tick();
+        this.isDeleting = false;
+      };
+
+      TxtRotate.prototype.tick = function () {
+        var i = this.loopNum % this.toRotate.length;
+        var fullTxt = this.toRotate[i];
+
+        if (this.isDeleting) {
+          this.txt = fullTxt.substring(0, this.txt.length - 1);
+        } else {
+          this.txt = fullTxt.substring(0, this.txt.length + 1);
+        }
+
+        this.el.innerHTML = '<span class="wrap">' + this.txt + "</span>";
+
+        var that = this;
+        var delta = 300 - Math.random() * 100;
+
+        if (this.isDeleting) {
+          delta /= 2;
+        }
+
+        if (!this.isDeleting && this.txt === fullTxt) {
+          delta = this.period;
+          this.isDeleting = true;
+        } else if (this.isDeleting && this.txt === "") {
+          this.isDeleting = false;
+          this.loopNum++;
+          delta = 500;
+        }
+        setTimeout(function () {
+          that.tick();
+        }, delta);
+      };
+
+      // 페이지 로드 시 실행되는 함수
+      window.onload = function () {
+        var element = document.getElementById("txt-rotate");
+        var toRotate = element.getAttribute("data-rotate");
+        var period = element.getAttribute("data-period");
+        if (toRotate) {
+          new TxtRotate(element, JSON.parse(toRotate), period);
+        }
+      };
+    </script>
+  </body>
+</html>
