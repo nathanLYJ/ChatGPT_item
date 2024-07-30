@@ -8,11 +8,27 @@ import asyncio
 import pygame
 import tempfile
 import random
+import sqlite3
+from datetime import datetime
 
 pygame.mixer.init()
 
 voice_channel = pygame.mixer.Channel(0)
 music_channel = pygame.mixer.Channel(1)
+
+def init_db():
+    conn = sqlite3.connect('recipes.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS feedback
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  recipe TEXT,
+                  rating INTEGER,
+                  comment TEXT,
+                  date TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db()  # 프로그램 시작 시 데이터베이스 초기화
 
 def chat_gpt_api(user_input, system_content):
     url = "https://open-api.jejucodingcamp.workers.dev/"
@@ -35,13 +51,14 @@ def chatbot_response(message, history):
     system_content = """너는 세계최고의 요리사야. 요청한 요리의 레시피를 제시해주되, 다음 조건을 반드시 지켜야 해:
     1. 전체 요리 과정이 20분을 넘지 않아야 함
     2. 재료는 이미 준비되어 있다고 가정함
-    3. 가능한 빠른 조리 방법을 사용 (시간 줄일수있는 제조법 제시)
+    3. 가능한 빠른 조리 방법을 사용 (예: 전자렌지, 믹서기, 소스)
     4. 각 단계는 최대 5분을 넘지 않도록 조절
     5. 레시피는 '재료:'와 '만드는 방법:'으로 구분해서 작성
     6. 만드는 방법의 각 단계 마지막에 '(X분 소요)'와 같이 소요 시간을 표시 (예: '양파를 다져주세요. (2분 소요)')
-    7. 전체 요리 시간이 정확히 몇 분 걸리는지 레시피 마지막에 '전체 요리 시간: X분'과 같이 명시
+    7. 전체 요리 시간이 정확히 몇 분 걸리는지 '재료:' 마지막에 '전체 요리 시간: X분'과 같이 명시
     8. 과정을 단순화하여 사용자에게 더 쉽게 설명해줘.
     9. 만드는 방법 글짜 강조 없이, 과정마다 1줄로 설명해줘
+    10. 레시피 마지막 총 소요시간 표시 안 함
     입력한 언어에 맞춰서 친절하게 설명해줘."""
     
     response = chat_gpt_api(message, system_content)
@@ -118,15 +135,18 @@ def toggle_music(choice):
         return gr.update(interactive=False), "배경 음악이 꺼졌습니다."
 
 async def process_steps(steps):
-    for step in steps:
+    total_steps = len(steps)
+    for index, step in enumerate(steps, 1):
         # 전체 요리 시간을 확인
         total_time_match = re.match(r'전체 요리 시간:\s*(\d+)분', step)
         if total_time_match:
             total_time = int(total_time_match.group(1))
-            print(f"전체 요리 시간: {total_time}분")
+            status_message = f"전체 요리 시간: {total_time}분"
+            yield status_message
+            print(status_message)
             audio_path = text_to_speech(step)
             if audio_path:
-                play_audio_with_delay(audio_path, 0)  # 대기 시간 없이 재생만 함
+                play_audio_with_delay(audio_path, 0)
             continue
 
         # 일반적인 요리 단계 처리
@@ -138,51 +158,75 @@ async def process_steps(steps):
             instruction = step
             duration = 1
         
+        status_message = f"단계 {index}/{total_steps}: {instruction} (소요 시간: {duration}분)"
+        yield status_message
         print(f"Processing step: {instruction} (Duration: {duration} minutes)")
         
         audio_path = text_to_speech(instruction)
         if audio_path:
-            play_audio_with_delay(audio_path, min(duration * 60, 300))  # 최대 5분으로 제한
-        await asyncio.sleep(1)  # 짧은 대기 시간 추가
-    
-    return "20분 레시피 안내가 완료되었습니다."
+            play_audio_with_delay(audio_path, min(duration * 60, 300))
+        await asyncio.sleep(1)
 
-with gr.Blocks() as demo:
-    chat_interface = gr.Chatbot(label="20분 레시피 챗봇")
-    msg = gr.Textbox(label="20분 안에 만들고 싶은 요리를 입력하세요")
-    clear = gr.Button("대화 내용 지우기")
-    start_cooking = gr.Button("요리 시작")
-    status = gr.Textbox(label="상태", value="대기 중")
-    
-    # 음악 컨트롤 추가
-    music_control = gr.Radio(["음악 켜기", "음악 끄기"], label="배경 음악", value="음악 끄기")
-    music_volume_slider = gr.Slider(minimum=0, maximum=100, step=1, label="배경 음악 볼륨", value=20, interactive=False)
-    music_volume_status = gr.Textbox(label="배경 음악 볼륨 상태", value="배경 음악 볼륨: 20%")
-
-    # 음성 안내 볼륨 컨트롤 추가
-    voice_volume_slider = gr.Slider(minimum=0, maximum=100, step=1, label="음성 안내 볼륨", value=80)
-    voice_volume_status = gr.Textbox(label="음성 안내 볼륨 상태", value="음성 안내 볼륨: 80%")
+    yield "요리가 완성되었습니다. 피드백을 남겨주세요!"
 
 
-    def respond(message, history):
+def save_feedback(recipe, rating, comment):
+    conn = sqlite3.connect('recipes.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO feedback (recipe, rating, comment, date) VALUES (?, ?, ?, ?)",
+              (recipe, rating, comment, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    conn.commit()
+    conn.close()
+
+def respond(message, history):
         history = chatbot_response(message, history)
         return history
 
-    async def start_cooking_process(history):
-        if not history:
-            return "레시피를 먼저 요청해주세요."
-        last_response = history[-1][1]
-        steps = extract_cooking_steps(last_response)
-        if steps[0] == "만드는 방법을 찾을 수 없습니다. 다시 요청해 주세요.":
-            return steps[0]
-        result = await process_steps(steps)
-        return result
+async def start_cooking_process(history):
+    if not history:
+        yield "레시피를 먼저 요청해주세요."
+        return  # 함수를 여기서 종료합니다.
+    last_response = history[-1][1]
+    steps = extract_cooking_steps(last_response)
+    if steps[0] == "만드는 방법을 찾을 수 없습니다. 다시 요청해 주세요.":
+        yield steps[0]
+        return  # 함수를 여기서 종료합니다.
+    async for status_update in process_steps(steps):
+        yield status_update
+    
+def submit_feedback_fn(recipe, rating, comment):
+        save_feedback(recipe, rating, comment)
+        return "피드백이 성공적으로 저장되었습니다. 감사합니다!"
 
+with gr.Blocks() as demo:
+    with gr.Tabs():
+        with gr.Tab("요리 레시피"):
+            chat_interface = gr.Chatbot(label="20분 레시피")
+            msg = gr.Textbox(label="20분 안에 만들고 싶은 요리를 입력하세요")
+            clear = gr.Button("대화 내용 지우기")
+            start_cooking = gr.Button("요리 시작")
+            status = gr.Textbox(label="상태", value="대기 중")
+
+        with gr.Tab("음악 설정"):
+            with gr.Row():
+                music_control = gr.Radio(["음악 켜기", "음악 끄기"], label="배경 음악", value="음악 끄기")
+                music_volume_slider = gr.Slider(minimum=0, maximum=100, step=1, label="배경 음악 볼륨", value=50, interactive=False)
+            music_volume_status = gr.Textbox(label="배경 음악 볼륨 상태", value="배경 음악 볼륨: 50%")
+            voice_volume_slider = gr.Slider(minimum=0, maximum=100, step=1, label="음성 안내 볼륨", value=50)
+            voice_volume_status = gr.Textbox(label="음성 안내 볼륨 상태", value="음성 안내 볼륨: 50%")
+
+        with gr.Tab("피드백"):
+            feedback_slider = gr.Slider(minimum=1, maximum=5, step=1, label="별점 (1-5)", value=5)
+            feedback_text = gr.Textbox(label="요리에 대한 후기를 남겨주세요")
+            submit_feedback = gr.Button("피드백 제출")   
+
+    # 이벤트 핸들러 연결
     msg.submit(respond, [msg, chat_interface], [chat_interface])
     clear.click(lambda: None, None, chat_interface, queue=False)
     start_cooking.click(start_cooking_process, inputs=[chat_interface], outputs=[status])
     music_control.change(toggle_music, inputs=[music_control], outputs=[music_volume_slider, status])
     voice_volume_slider.change(set_voice_volume, inputs=[voice_volume_slider], outputs=[voice_volume_status])
     music_volume_slider.change(set_music_volume, inputs=[music_volume_slider], outputs=[music_volume_status])
+    submit_feedback.click(submit_feedback_fn, inputs=[chat_interface, feedback_slider, feedback_text])
 
 demo.launch()

@@ -1,0 +1,154 @@
+/* 전체 배경 및 기본 스타일 */
+body {
+    background-color: #fff5e6;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    color: #4a4a4a;
+}
+
+/* Gradio 컨테이너 스타일 */
+.gradio-container {
+    max-width: 900px !important;
+    margin: auto;
+    padding: 20px;
+    background-color: #fffaf0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    border: 3px dashed #ffa07a;
+}
+
+/* 탭 스타일 */
+.tabs {
+    border-bottom: 2px dotted #ffa07a;
+    margin-bottom: 20px;
+
+}
+
+.tab-nav {
+    display: inline-block;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    color: #ff6b6b;
+}
+
+.tab-nav.selected {
+    border-bottom-color: #ff6b6b;
+    color: #ff4757;
+}
+
+/* 채팅 인터페이스 스타일 */
+.chat-window {
+    border: 2px solid #ffa07a;
+    border-radius: 15px;
+    height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #fff9f3;
+    box-shadow: inset 0 0 10px rgba(255, 160, 122, 0.3);
+}
+
+/* 버튼 스타일 */
+.gr-button {
+    background-color: #ff9ff3;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.gr-button:hover {
+    background-color: #ff85e8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 입력 필드 스타일 */
+.gr-input, .gr-text-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ffd3b6;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    background-color: #fff9f3;
+    transition: all 0.3s;
+}
+
+.gr-input:focus, .gr-text-input:focus {
+    border-color: #ff9ff3;
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 159, 243, 0.5);
+}
+
+/* 슬라이더 스타일 */
+.gr-slider {
+    width: 100%;
+    height: 15px;
+    border-radius: 10px;
+    background: #ffd3b6;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+}
+
+.gr-slider:hover {
+    opacity: 1;
+}
+
+.gr-slider::-webkit-slider-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #ff9ff3;
+    cursor: pointer;
+}
+
+.gr-slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #ff9ff3;
+    cursor: pointer;
+}
+
+/* 라디오 버튼 스타일 */
+.gr-radio {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+/* 상태 텍스트박스 스타일 */
+#status {
+    background-color: #ffecb3;
+    border: 2px solid #ffd180;
+    color: #ff6b6b;
+    padding: 15px;
+    border-radius: 15px;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* 피드백 섹션 스타일 */
+#feedback-slider {
+    width: 100%;
+}
+
+#feedback-text {
+    width: 100%;
+    height: 100px;
+    resize: vertical;
+    border: 2px solid #ffd3b6;
+    border-radius: 15px;
+    padding: 10px;
+    background-color: #fff9f3;
+}
+
+/* 고양이 요리사 아이콘 (가상의 요소) */
+.gradio-container::before {
+    content: '';
+    font-size: 40px;
+}

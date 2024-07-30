@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NathanLYJ Blog</title>
+    <title>NathanLYJ CatChef</title>
     <!-- 공통 CSS 파일 연결 -->
     <link rel="stylesheet" href="CSS/common.css" />
     <style>
@@ -37,17 +37,15 @@
     <div>
       <div class="sky" id="sky"></div>
       <div class="container">
-        <p>Hi. I'm</p>
-        <h1>NathanLYJ</h1>
-        <!-- 텍스트 회전 효과를 위한 요소 -->
-        <h1>
-          <span
-            id="txt-rotate"
-            data-period="2000"
-            data-rotate='["Keep", "growing!"]'
-          ></span>
-        </h1>
+        <span
+          id="txt-rotate"
+          data-period="2000"
+          data-rotate='["Welcome", "Cat Kitchen"]'
+        ></span>
+        <h1>The best chef</h1>
         <!-- 소셜 아이콘 링크 -->
+        <p>모든 요리를 20분이내로 완성해드립니다.</p>
+        <p>요리 시작하면 음성으로 안내해드립니다.</p>
         <div class="social-icons">
           <a href="http://127.0.0.1:7860">
             <img
@@ -90,7 +88,12 @@
             "🍰", // Cake
           ];
 
+          const MAX_SNOW = 50; // 최대 눈(음식 아이콘) 수
+          let currentSnow = 0; // 현재 화면에 있는 눈의 수
+
           function createSnow() {
+            if (currentSnow >= MAX_SNOW) return; // 최대 수에 도달하면 생성 중단
+
             const sky = document.getElementById("sky");
             const snow = document.createElement("div");
             snow.className = "snow";
@@ -99,9 +102,11 @@
               cookingTerms[Math.floor(Math.random() * cookingTerms.length)];
             snow.style.animationDuration = `${Math.random() * 5 + 5}s`;
             sky.appendChild(snow);
+            currentSnow++; // 눈 개수 증가
 
             snow.addEventListener("animationend", () => {
               snow.remove();
+              currentSnow--; // 눈 개수 감소
               addToSnowPile(snow.textContent);
             });
           }
@@ -125,7 +130,7 @@
             }, 3000);
           }
           // 눈 생성 시작
-          setInterval(createSnow, 200);
+          setInterval(createSnow, 500);
         }, 1000); // 1초 후에 눈 효과 시작
       });
 
