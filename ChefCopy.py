@@ -1,35 +1,33 @@
 import gradio as gr
 import requests
-from gtts import gTTS
 import os
 import re
-import time
 import asyncio
 import pygame
 import tempfile
 import random
 import sqlite3
 from datetime import datetime
+from gtts import gTTS
 
+# Initialize pygame mixer
 pygame.mixer.init()
-
 voice_channel = pygame.mixer.Channel(0)
 music_channel = pygame.mixer.Channel(1)
 
+# Database initialization
 def init_db():
-    conn = sqlite3.connect('recipes.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS feedback
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  recipe TEXT,
-                  rating INTEGER,
-                  comment TEXT,
-                  date TEXT)''')
-    conn.commit()
-    conn.close()
+    with sqlite3.connect('recipes.db') as conn:
+        conn.execute('''CREATE TABLE IF NOT EXISTS feedback
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                         recipe TEXT,
+                         rating INTEGER,
+                         comment TEXT,
+                         date TEXT)''')
 
-init_db()  # 프로그램 시작 시 데이터베이스 초기화
+init_db()
 
+# API and ChatGPT functions
 def chat_gpt_api(user_input, system_content):
     url = "https://open-api.jejucodingcamp.workers.dev/"
     data = [
@@ -41,13 +39,11 @@ def chat_gpt_api(user_input, system_content):
     response = requests.post(url, json=data, headers=headers)
     
     if response.status_code == 200:
-        result = response.json()
-        return result['choices'][0]['message']['content']
+        return response.json()['choices'][0]['message']['content']
     else:
-        return f"Error : {response.status_code}, {response.text}"
+        return f"Error: {response.status_code}, {response.text}"
 
 def chatbot_response(message, history):
-    history = history or []
     system_content = """너는 세계최고의 요리사야. 요청한 요리의 레시피를 제시해주되, 다음 조건을 반드시 지켜야 해:
     1. 전체 요리 과정이 20분을 넘지 않아야 함
     2. 재료는 이미 준비되어 있다고 가정함
@@ -65,28 +61,44 @@ def chatbot_response(message, history):
     history.append((message, response))
     return history
 
+# Recipe processing functions
 def extract_cooking_steps(recipe):
-    print("Received recipe:", recipe)  # 디버깅용 출력
-    
-    # '만드는 방법:' 이후부터 끝까지의 모든 내용을 추출
     match = re.search(r'만드는 방법:(.*?)$', recipe, re.DOTALL)
     if match:
-        steps = match.group(1).strip()
-        # 각 줄을 분리하고 빈 줄은 제거
-        steps = [line.strip() for line in steps.split('\n') if line.strip()]
-        
-        print("Extracted steps:", steps)  # 디버깅용 출력
+        steps = [line.strip() for line in match.group(1).strip().split('\n') if line.strip()]
         return steps
-    
-    print("No steps found")  # 디버깅용 출력
     return ["만드는 방법을 찾을 수 없습니다. 다시 요청해 주세요."]
 
+async def process_steps(steps):
+    total_steps = len(steps)
+    for index, step in enumerate(steps, 1):
+        total_time_match = re.match(r'전체 요리 시간:\s*(\d+)분', step)
+        if total_time_match:
+            total_time = int(total_time_match.group(1))
+            yield f"전체 요리 시간: {total_time}분"
+            asyncio.create_task(text_to_speech_async(step))
+            continue
+
+        match = re.match(r'(.*?)\s*\((\d+)분\s*소요\)\s*$', step)
+        if match:
+            instruction, duration = match.groups()
+            duration = int(duration)
+        else:
+            instruction, duration = step, 1
+        
+        yield f"단계 {index}/{total_steps}: {instruction} (소요 시간: {duration}분)"
+        asyncio.create_task(text_to_speech_async(instruction))
+        await asyncio.sleep(min(duration * 60, 300))
+
+    yield "요리가 완성되었습니다. 피드백을 남겨주세요!"
+    asyncio.create_task(text_to_speech_async("요리가 완성되었습니다! 맛은 어떠신가요? 1부터 5까지의 별점과 간단한 후기를 남겨주세요."))
+
+# Audio functions
 def text_to_speech(text):
     if not text or text.isspace():
         return None
     tts = gTTS(text, lang='ko', slow=False)
     
-    # 임시 파일 생성
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
         temp_filename = temp_file.name
         tts.save(temp_filename)
@@ -107,27 +119,13 @@ async def text_to_speech_async(text):
         except Exception as e:
             print(f"Error removing temporary file: {e}")
 
-def play_audio_with_delay(file_path, delay):
-    sound = pygame.mixer.Sound(file_path)
-    voice_channel.play(sound)
-    while voice_channel.get_busy():
-        pygame.time.Clock().tick(10)
-    if delay > 0:
-        time.sleep(delay)
-    
-    # 임시 파일 삭제
-    try:
-        os.remove(file_path)
-    except Exception as e:
-        print(f"Error removing temporary file: {e}")
-
 def play_background_music():
-    music_folder = "background_music"  # 배경 음악 파일이 있는 폴더
+    music_folder = "background_music"
     music_files = [f for f in os.listdir(music_folder) if f.endswith('.mp3')]
     if music_files:
         random_music = random.choice(music_files)
         music = pygame.mixer.Sound(os.path.join(music_folder, random_music))
-        music_channel.play(music, loops=-1)  # -1은 무한 반복을 의미합니다
+        music_channel.play(music, loops=-1)
 
 def stop_background_music():
     music_channel.stop()
@@ -148,65 +146,33 @@ def toggle_music(choice):
         stop_background_music()
         return gr.update(interactive=False), "배경 음악이 꺼졌습니다."
 
-async def process_steps(steps):
-    total_steps = len(steps)
-    for index, step in enumerate(steps, 1):
-        # 전체 요리 시간을 확인
-        total_time_match = re.match(r'전체 요리 시간:\s*(\d+)분', step)
-        if total_time_match:
-            total_time = int(total_time_match.group(1))
-            status_message = f"전체 요리 시간: {total_time}분"
-            yield status_message
-            asyncio.create_task(text_to_speech_async(step))
-            continue
-
-        # 일반적인 요리 단계 처리
-        match = re.match(r'(.*?)\s*\((\d+)분\s*소요\)\s*$', step)
-        if match:
-            instruction = match.group(1)
-            duration = int(match.group(2))
-        else:
-            instruction = step
-            duration = 1
-        
-        status_message = f"단계 {index}/{total_steps}: {instruction} (소요 시간: {duration}분)"
-        yield status_message
-        
-        asyncio.create_task(text_to_speech_async(instruction))
-        await asyncio.sleep(min(duration * 60, 300))  # 최대 5분으로 제한
-
-    yield "요리가 완성되었습니다. 피드백을 남겨주세요!"
-    asyncio.create_task(text_to_speech_async("요리가 완성되었습니다! 맛은 어떠신가요? 1부터 5까지의 별점과 간단한 후기를 남겨주세요."))
-
-
+# Feedback function
 def save_feedback(recipe, rating, comment):
-    conn = sqlite3.connect('recipes.db')
-    c = conn.cursor()
-    c.execute("INSERT INTO feedback (recipe, rating, comment, date) VALUES (?, ?, ?, ?)",
-              (recipe, rating, comment, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-    conn.commit()
-    conn.close()
+    with sqlite3.connect('recipes.db') as conn:
+        conn.execute("INSERT INTO feedback (recipe, rating, comment, date) VALUES (?, ?, ?, ?)",
+                     (recipe, rating, comment, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
+# Gradio interface functions
 def respond(message, history):
-        history = chatbot_response(message, history)
-        return history
+    return chatbot_response(message, history)
 
 async def start_cooking_process(history):
     if not history:
         yield "레시피를 먼저 요청해주세요."
-        return  # 함수를 여기서 종료합니다.
+        return
     last_response = history[-1][1]
     steps = extract_cooking_steps(last_response)
     if steps[0] == "만드는 방법을 찾을 수 없습니다. 다시 요청해 주세요.":
         yield steps[0]
-        return  # 함수를 여기서 종료합니다.
+        return
     async for status_update in process_steps(steps):
         yield status_update
     
 def submit_feedback_fn(recipe, rating, comment):
-        save_feedback(recipe, rating, comment)
-        return "피드백이 성공적으로 저장되었습니다. 감사합니다!"
+    save_feedback(recipe, rating, comment)
+    return "피드백이 성공적으로 저장되었습니다. 감사합니다!"
 
+# Gradio interface
 with gr.Blocks(css="CSS/Chef.css") as demo:
     with gr.Tabs():
         with gr.Tab("요리 레시피"):
@@ -232,7 +198,7 @@ with gr.Blocks(css="CSS/Chef.css") as demo:
             feedback_text = gr.Textbox(label="요리에 대한 후기를 남겨주세요")
             submit_feedback = gr.Button("피드백 제출")   
 
-    # 이벤트 핸들러 연결
+    # Event handlers
     msg.submit(respond, [msg, chat_interface], [chat_interface])
     clear.click(lambda: None, None, chat_interface, queue=False)
     start_cooking.click(start_cooking_process, inputs=[chat_interface], outputs=[status])
