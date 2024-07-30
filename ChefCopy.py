@@ -241,4 +241,4 @@ with gr.Blocks(css="CSS/Chef.css") as demo:
     music_volume_slider.change(set_music_volume, inputs=[music_volume_slider], outputs=[music_volume_status])
     submit_feedback.click(submit_feedback_fn, inputs=[chat_interface, feedback_slider, feedback_text])
 
-demo.launch()
+demo.launch(share=True)
