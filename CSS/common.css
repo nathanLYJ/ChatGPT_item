@@ -183,7 +183,7 @@ p {
 /* Main page specific styles */
 #txt-rotate {
     display: inline-block;
-    font-size: 5em;
+    font-size: 10em;
     font-weight: bold;
     color: #FFD700; /* 골드 색상 */
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
