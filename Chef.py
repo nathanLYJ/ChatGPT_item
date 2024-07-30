@@ -93,6 +93,20 @@ def text_to_speech(text):
     
     return temp_filename
 
+async def text_to_speech_async(text):
+    if not text or text.isspace():
+        return
+    audio_path = text_to_speech(text)
+    if audio_path:
+        sound = pygame.mixer.Sound(audio_path)
+        voice_channel.play(sound)
+        while voice_channel.get_busy():
+            await asyncio.sleep(0.1)
+        try:
+            os.remove(audio_path)
+        except Exception as e:
+            print(f"Error removing temporary file: {e}")
+
 def play_audio_with_delay(file_path, delay):
     sound = pygame.mixer.Sound(file_path)
     voice_channel.play(sound)
@@ -143,10 +157,7 @@ async def process_steps(steps):
             total_time = int(total_time_match.group(1))
             status_message = f"전체 요리 시간: {total_time}분"
             yield status_message
-            print(status_message)
-            audio_path = text_to_speech(step)
-            if audio_path:
-                play_audio_with_delay(audio_path, 0)
+            asyncio.create_task(text_to_speech_async(step))
             continue
 
         # 일반적인 요리 단계 처리
@@ -160,14 +171,12 @@ async def process_steps(steps):
         
         status_message = f"단계 {index}/{total_steps}: {instruction} (소요 시간: {duration}분)"
         yield status_message
-        print(f"Processing step: {instruction} (Duration: {duration} minutes)")
         
-        audio_path = text_to_speech(instruction)
-        if audio_path:
-            play_audio_with_delay(audio_path, min(duration * 60, 300))
-        await asyncio.sleep(1)
+        asyncio.create_task(text_to_speech_async(instruction))
+        await asyncio.sleep(min(duration * 60, 300))  # 최대 5분으로 제한
 
     yield "요리가 완성되었습니다. 피드백을 남겨주세요!"
+    asyncio.create_task(text_to_speech_async("요리가 완성되었습니다! 맛은 어떠신가요? 1부터 5까지의 별점과 간단한 후기를 남겨주세요."))
 
 
 def save_feedback(recipe, rating, comment):
@@ -198,9 +207,10 @@ def submit_feedback_fn(recipe, rating, comment):
         save_feedback(recipe, rating, comment)
         return "피드백이 성공적으로 저장되었습니다. 감사합니다!"
 
-with gr.Blocks() as demo:
+with gr.Blocks(css="CSS/Chef.css") as demo:
     with gr.Tabs():
         with gr.Tab("요리 레시피"):
+            gr.Image("img/CatChef.png", label="요리사 고양이", show_label=False)
             chat_interface = gr.Chatbot(label="20분 레시피")
             msg = gr.Textbox(label="20분 안에 만들고 싶은 요리를 입력하세요")
             clear = gr.Button("대화 내용 지우기")
@@ -208,6 +218,7 @@ with gr.Blocks() as demo:
             status = gr.Textbox(label="상태", value="대기 중")
 
         with gr.Tab("음악 설정"):
+            gr.Image("img/CatDJ.png", label="DJ 고양이", show_label=False)
             with gr.Row():
                 music_control = gr.Radio(["음악 켜기", "음악 끄기"], label="배경 음악", value="음악 끄기")
                 music_volume_slider = gr.Slider(minimum=0, maximum=100, step=1, label="배경 음악 볼륨", value=50, interactive=False)
@@ -216,6 +227,7 @@ with gr.Blocks() as demo:
             voice_volume_status = gr.Textbox(label="음성 안내 볼륨 상태", value="음성 안내 볼륨: 50%")
 
         with gr.Tab("피드백"):
+            gr.Image("img/CatQ&A.png", label="Q&A 고양이", show_label=False)
             feedback_slider = gr.Slider(minimum=1, maximum=5, step=1, label="별점 (1-5)", value=5)
             feedback_text = gr.Textbox(label="요리에 대한 후기를 남겨주세요")
             submit_feedback = gr.Button("피드백 제출")   
@@ -229,4 +241,4 @@ with gr.Blocks() as demo:
     music_volume_slider.change(set_music_volume, inputs=[music_volume_slider], outputs=[music_volume_status])
     submit_feedback.click(submit_feedback_fn, inputs=[chat_interface, feedback_slider, feedback_text])
 
-demo.launch()
+demo.launch(share=True)
