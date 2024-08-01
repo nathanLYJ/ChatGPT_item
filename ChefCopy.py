@@ -176,7 +176,6 @@ def submit_feedback_fn(recipe, rating, comment):
 with gr.Blocks(css="CSS/Chef.css") as demo:
     with gr.Tabs():
         with gr.Tab("요리 레시피"):
-            gr.Image("img/CatChef.png", label="요리사 고양이", show_label=False)
             chat_interface = gr.Chatbot(label="20분 레시피")
             msg = gr.Textbox(label="20분 안에 만들고 싶은 요리를 입력하세요")
             clear = gr.Button("대화 내용 지우기")
@@ -184,7 +183,6 @@ with gr.Blocks(css="CSS/Chef.css") as demo:
             status = gr.Textbox(label="상태", value="대기 중")
 
         with gr.Tab("음악 설정"):
-            gr.Image("img/CatDJ.png", label="DJ 고양이", show_label=False)
             with gr.Row():
                 music_control = gr.Radio(["음악 켜기", "음악 끄기"], label="배경 음악", value="음악 끄기")
                 music_volume_slider = gr.Slider(minimum=0, maximum=100, step=1, label="배경 음악 볼륨", value=50, interactive=False)
@@ -193,7 +191,6 @@ with gr.Blocks(css="CSS/Chef.css") as demo:
             voice_volume_status = gr.Textbox(label="음성 안내 볼륨 상태", value="음성 안내 볼륨: 50%")
 
         with gr.Tab("피드백"):
-            gr.Image("img/CatQ&A.png", label="Q&A 고양이", show_label=False)
             feedback_slider = gr.Slider(minimum=1, maximum=5, step=1, label="별점 (1-5)", value=5)
             feedback_text = gr.Textbox(label="요리에 대한 후기를 남겨주세요")
             submit_feedback = gr.Button("피드백 제출")   
@@ -207,4 +204,4 @@ with gr.Blocks(css="CSS/Chef.css") as demo:
     music_volume_slider.change(set_music_volume, inputs=[music_volume_slider], outputs=[music_volume_status])
     submit_feedback.click(submit_feedback_fn, inputs=[chat_interface, feedback_slider, feedback_text])
 
-demo.launch(share=True)
+demo.launch()
