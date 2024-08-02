@@ -3,189 +3,289 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NathanLYJ CatChef</title>
-    <!-- 공통 CSS 파일 연결 -->
-    <link rel="stylesheet" href="CSS/common.css" />
-    <style>
-      /* 눈 효과 스타일 */
-      .snow {
-        position: absolute;
-        top: 0;
-        font-size: 24px;
-        opacity: 0.8;
-        animation: fall linear infinite;
-      }
-      @keyframes fall {
-        0% {
-          transform: translateY(-100px);
-        }
-        100% {
-          transform: translateY(100vh);
-        }
-      }
-      /* 눈 쌓이는 영역 스타일 */
-      #snow-pile {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-      }
-    </style>
+    <title>요리 레시피</title>
+    <link rel="stylesheet" href="CSS/ChefHTML.css" />
   </head>
-
   <body>
-    <div>
-      <div class="sky" id="sky"></div>
-      <div class="container">
-        <span
-          id="txt-rotate"
-          data-period="2000"
-          data-rotate='["Welcome", "Cat Kitchen"]'
-        ></span>
-        <h1>The best chef</h1>
-        <!-- 소셜 아이콘 링크 -->
-        <p>모든 요리를 20분이내로 완성해드립니다.</p>
-        <p>요리 시작하면 음성으로 안내해드립니다.</p>
-        <div class="social-icons">
-          <a href="https://5225f8f0deb655c087.gradio.live">
-            <img
-              src="./free-animated-icon-cookbook-15578595.png"
-              class="icon"
-              alt="Chef"
-            />
-            <span class="icon-Chef">Chef</span>
-          </a>
+    <div class="container">
+      <div class="tab-menu">
+        <button class="tab-link active" data-tab="recipe">요리 레시피</button>
+        <button class="tab-link" data-tab="music">음악 설정</button>
+        <button class="tab-link" data-tab="feedback">피드백</button>
+      </div>
+      <div id="recipe" class="tab-content active">
+        <div class="recipe-box">
+          <h2>20분 레시피</h2>
+          <div
+            class="chat-output"
+            id="recipe-output"
+            placeholder="20분 안에 만들고 싶은 요리를 입력하세요"
+          ></div>
+          <div class="chat-input-container">
+            <textarea
+              id="chat-input"
+              title="recipe-input"
+              placeholder="야옹~ 오늘은 뭘 먹고싶냥? 고기? 생선? 아니면 간식이냥? "
+              rows="1"
+            ></textarea>
+            <button class="generate-button">해줘</button>
+          </div>
+          <div class="button-group">
+            <button class="clear-button">대화 내용 지우기</button>
+            <button class="start-button">요리 시작</button>
+          </div>
+          <div class="status">
+            <p>상태: <span id="status-text">대기 중</span></p>
+          </div>
         </div>
       </div>
-      <div id="snow-pile"></div>
+      <div id="music" class="tab-content">
+        <div class="music-settings">
+          <div class="music-toggle">
+            <label>배경 음악</label>
+            <input type="radio" name="background-music" id="music-on" checked />
+            <label for="music-on">음악 켜기</label>
+            <input type="radio" name="background-music" id="music-off" />
+            <label for="music-off">음악 끄기</label>
+          </div>
+          <div class="music-volume">
+            <label for="background-volume">배경 음악 볼륨</label>
+            <input
+              type="range"
+              id="background-volume"
+              min="0"
+              max="100"
+              value="50"
+            />
+            <span id="background-volume-number">50</span>
+          </div>
+          <div class="voice-volume">
+            <label for="voice-volume">음성 안내 볼륨</label>
+            <input
+              type="range"
+              id="voice-volume"
+              min="0"
+              max="100"
+              value="50"
+            />
+            <span id="voice-volume-number">50</span>
+          </div>
+        </div>
+      </div>
+      <div id="feedback" class="tab-content">
+        <div class="feedback-form">
+          <div class="rating">
+            <label for="rating">별점 (1-5)</label>
+            <input type="range" id="rating" min="1" max="5" value="5" />
+            <span id="rating-number">5</span>
+          </div>
+          <div class="feedback-text">
+            <label for="feedback-textarea">요리에 대한 후기를 남겨주세요</label>
+            <textarea id="feedback-textarea" rows="4" cols="50"></textarea>
+          </div>
+          <button class="submit-feedback">피드백 제출</button>
+        </div>
+      </div>
     </div>
-
     <script>
-      // 페이지 로드 후 눈 효과 시작
-      window.addEventListener("load", function () {
-        setTimeout(function () {
-          // 눈 효과 관련 코드를 여기로 이동
-          const cookingTerms = [
-            "🥕", // Carrot
-            "🍅", // Tomato
-            "🥒", // Cucumber
-            "🍆", // Eggplant
-            "🌽", // Corn
-            "🥔", // Potato
-            "🍲", // Pot of food
-            "🍳", // Cooking
-            "🍚", // Rice
-            "🍜", // Noodles
-            "🍝", // Spaghetti
-            "🍣", // Sushi
-            "🥗", // Salad
-            "🍞", // Bread
-            "🧀", // Cheese
-            "🥩", // Meat
-            "🍗", // Poultry leg
-            "🍖", // Meat on bone
-            "🍤", // Fried shrimp
-            "🍰", // Cake
-          ];
+      document.querySelectorAll(".tab-link").forEach((button) => {
+        button.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab-link")
+            .forEach((btn) => btn.classList.remove("active"));
+          button.classList.add("active");
 
-          const MAX_SNOW = 50; // 최대 눈(음식 아이콘) 수
-          let currentSnow = 0; // 현재 화면에 있는 눈의 수
-
-          function createSnow() {
-            if (currentSnow >= MAX_SNOW) return; // 최대 수에 도달하면 생성 중단
-
-            const sky = document.getElementById("sky");
-            const snow = document.createElement("div");
-            snow.className = "snow";
-            snow.style.left = `${Math.random() * 100}%`;
-            snow.textContent =
-              cookingTerms[Math.floor(Math.random() * cookingTerms.length)];
-            snow.style.animationDuration = `${Math.random() * 5 + 5}s`;
-            sky.appendChild(snow);
-            currentSnow++; // 눈 개수 증가
-
-            snow.addEventListener("animationend", () => {
-              snow.remove();
-              currentSnow--; // 눈 개수 감소
-              addToSnowPile(snow.textContent);
-            });
-          }
-          // 눈 쌓기 함수
-          function addToSnowPile(text) {
-            const snowPile = document.getElementById("snow-pile");
-            const snowFlake = document.createElement("span");
-            snowFlake.textContent = text;
-            const fontSize = Math.floor(Math.random() * 9) + 12;
-            snowFlake.style.fontSize = `${fontSize}px`;
-            snowPile.appendChild(snowFlake);
-
-            if (snowPile.children.length > 100) {
-              snowPile.removeChild(snowPile.firstChild);
-            }
-
-            setTimeout(() => {
-              snowFlake.style.opacity = "0";
-              snowFlake.style.transition = "opacity 2s";
-              setTimeout(() => snowFlake.remove(), 2000);
-            }, 3000);
-          }
-          // 눈 생성 시작
-          setInterval(createSnow, 500);
-        }, 1000); // 1초 후에 눈 효과 시작
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((content) => content.classList.remove("active"));
+          document
+            .getElementById(button.getAttribute("data-tab"))
+            .classList.add("active");
+        });
       });
 
-      // 텍스트 회전 효과 클래스
-      var TxtRotate = function (el, toRotate, period) {
-        this.toRotate = toRotate;
-        this.el = el;
-        this.loopNum = 0;
-        this.period = parseInt(period, 10) || 2000;
-        this.txt = "";
-        this.tick();
-        this.isDeleting = false;
-      };
+      // 배경 음악 볼륨 동기화
+      const backgroundVolume = document.getElementById("background-volume");
+      const backgroundVolumeNumber = document.getElementById(
+        "background-volume-number"
+      );
+      backgroundVolume.addEventListener("input", () => {
+        backgroundVolumeNumber.textContent = backgroundVolume.value;
+      });
 
-      TxtRotate.prototype.tick = function () {
-        var i = this.loopNum % this.toRotate.length;
-        var fullTxt = this.toRotate[i];
+      // 음성 안내 볼륨 동기화
+      const voiceVolume = document.getElementById("voice-volume");
+      const voiceVolumeNumber = document.getElementById("voice-volume-number");
+      voiceVolume.addEventListener("input", () => {
+        voiceVolumeNumber.textContent = voiceVolume.value;
+      });
 
-        if (this.isDeleting) {
-          this.txt = fullTxt.substring(0, this.txt.length - 1);
+      // 별점 동기화
+      const rating = document.getElementById("rating");
+      const ratingNumber = document.getElementById("rating-number");
+      rating.addEventListener("input", () => {
+        ratingNumber.textContent = rating.value;
+      });
+
+      // 요리 시작 버튼 기능
+      const startButton = document.querySelector(".start-button");
+      const statusText = document.getElementById("status-text");
+      startButton.addEventListener("click", async () => {
+        const recipeOutput = document.getElementById("recipe-output");
+        const steps = Array.from(
+          recipeOutput.querySelectorAll(".chat-bubble.step")
+        ).map((step) => step.textContent);
+        statusText.textContent = "요리 시작...";
+        await processRecipe(steps);
+      });
+
+      // 레시피 생성 버튼 기능
+      const input = document.getElementById("chat-input");
+      const sendButton = document.getElementById("send-button");
+      const chatOutput = document.getElementById("recipe-output");
+      sendButton.addEventListener("click", async () => {
+        sendMessage();
+      });
+
+      function sendMessage() {
+        const message = input.value.trim();
+        if (message) {
+          const messageElement = document.createElement("div");
+          messageElement.classList.add("message");
+          messageElement.textContent = message;
+          chatOutput.appendChild(messageElement);
+          input.value = "";
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+          generateRecipe(message);
+        }
+      }
+
+      input.addEventListener("keypress", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // 대화 내용 지우기 버튼 기능
+      const clearButton = document.querySelector(".clear-button");
+      clearButton.addEventListener("click", () => {
+        chatOutput.innerHTML = "";
+      });
+
+      // 피드백 제출 버튼 기능
+      const submitFeedbackButton = document.querySelector(".submit-feedback");
+      const feedbackTextarea = document.getElementById("feedback-textarea");
+      submitFeedbackButton.addEventListener("click", () => {
+        alert("피드백이 제출되었습니다. 감사합니다!");
+        feedbackTextarea.value = "";
+        rating.value = 5;
+        ratingNumber.textContent = "5";
+      });
+
+      // Web Speech API를 사용하여 텍스트를 음성으로 변환
+      function speak(text) {
+        return new Promise((resolve, reject) => {
+          if (!("speechSynthesis" in window)) {
+            alert("이 브라우저는 음성 합성을 지원하지 않습니다.");
+            reject(new Error("Speech Synthesis not supported"));
+          }
+
+          const speech = new SpeechSynthesisUtterance();
+          speech.text = text;
+          speech.lang = "ko-KR"; // 한국어 설정
+          speech.volume = document.getElementById("voice-volume").value / 100;
+          speech.onend = resolve;
+          speech.onerror = reject;
+          window.speechSynthesis.speak(speech);
+        });
+      }
+
+      // API를 호출하여 레시피를 생성하는 함수
+      async function generateRecipe(userInput) {
+        const systemContent = `너는 세계최고의 요리사야. 요청한 요리의 레시피를 제시해주되, 다음 조건을 반드시 지켜야 해:
+          1. 전체 요리 과정이 20분을 넘지 않아야 함
+          2. 재료는 이미 준비되어 있다고 가정함
+          3. 가능한 빠른 조리 방법을 사용 (예: 전자렌지, 믹서기, 소스)
+          4. 각 단계는 최대 5분을 넘지 않도록 조절
+           5. 레시피는 '재료:'와 '만드는 방법:'으로 구분해서 작성
+          6. 만드는 방법의 각 단계 마지막에 '(X분 소요)'와 같이 소요 시간을 표시 (예: '양파를 다져주세요. (2분 소요)')
+          7. 전체 요리 시간이 정확히 몇 분 걸리는지 '재료:' 마지막에 '전체 요리 시간: X분'과 같이 명시
+          8. 과정을 단순화하여 사용자에게 더 쉽게 설명해줘.
+          9. 만드는 방법 글짜 강조 없이, 과정마다 1줄로 설명해줘
+          10. 레시피 마지막 총 소요시간 표시 안 함
+          입력한 언어에 맞춰서 친절하게 설명해줘.`;
+        const url = "https://open-api.jejucodingcamp.workers.dev/";
+        const data = [
+          { role: "system", content: systemContent },
+          { role: "user", content: userInput },
+        ];
+        const headers = { "Content-Type": "application/json" };
+
+        statusText.textContent = "레시피 생성 중...";
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(data),
+        });
+
+        if (response.status === 200) {
+          const result = await response.json();
+          const recipe = result.choices[0].message.content;
+          displayRecipe(recipe);
+          statusText.textContent = "레시피 생성 완료";
         } else {
-          this.txt = fullTxt.substring(0, this.txt.length + 1);
+          statusText.textContent = `Error: ${response.status}, ${response.statusText}`;
+        }
+      }
+
+      // 레시피를 단계별로 처리하는 함수
+      async function processRecipe(steps) {
+        for (const step of steps) {
+          statusText.textContent = step; // 현재 단계의 내용을 statusText에 출력
+
+          await speak(step);
+
+          const timeMatch = step.match(/\((\d+)분 소요\)/);
+          const time = timeMatch ? parseInt(timeMatch[1], 10) : 0;
+
+          await new Promise((resolve) => setTimeout(resolve, time * 60000)); // 분을 밀리초로 변환하여 대기
         }
 
-        this.el.innerHTML = '<span class="wrap">' + this.txt + "</span>";
+        statusText.textContent = "요리가 완성되었습니다. 맛있게 드세요!";
+        await speak("요리가 완성되었습니다. 맛있게 드세요!");
+        statusText.textContent = "완료";
+      }
 
-        var that = this;
-        var delta = 300 - Math.random() * 100;
+      // 생성된 레시피를 화면에 표시하는 함수
+      function displayRecipe(recipe) {
+        const recipeOutput = document.getElementById("recipe-output");
+        recipeOutput.innerHTML = ""; // 이전 출력 초기화
+        const lines = recipe.split("\n");
+        let inMethod = false;
 
-        if (this.isDeleting) {
-          delta /= 2;
+        for (const line of lines) {
+          const bubble = document.createElement("div");
+          bubble.classList.add("chat-bubble");
+          if (line.startsWith("재료:")) {
+            bubble.textContent = line;
+            recipeOutput.appendChild(bubble);
+            inMethod = false;
+          } else if (line.startsWith("만드는 방법:")) {
+            bubble.textContent = line;
+            recipeOutput.appendChild(bubble);
+            inMethod = true;
+          } else if (inMethod) {
+            bubble.textContent = line;
+            bubble.classList.add("step");
+            recipeOutput.appendChild(bubble);
+          } else {
+            bubble.textContent = line;
+            recipeOutput.appendChild(bubble);
+          }
         }
-
-        if (!this.isDeleting && this.txt === fullTxt) {
-          delta = this.period;
-          this.isDeleting = true;
-        } else if (this.isDeleting && this.txt === "") {
-          this.isDeleting = false;
-          this.loopNum++;
-          delta = 500;
-        }
-        setTimeout(function () {
-          that.tick();
-        }, delta);
-      };
-
-      // 페이지 로드 시 실행되는 함수
-      window.onload = function () {
-        var element = document.getElementById("txt-rotate");
-        var toRotate = element.getAttribute("data-rotate");
-        var period = element.getAttribute("data-period");
-        if (toRotate) {
-          new TxtRotate(element, JSON.parse(toRotate), period);
-        }
-      };
+      }
     </script>
   </body>
 </html>

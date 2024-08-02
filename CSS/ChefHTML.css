@@ -1,13 +1,13 @@
    /* 전체 배경 및 기본 스타일 */
    body {
 	background-color: #fff5e6;
-	font-family: 'Comic Sans MS', cursive, sans-serif;
+	font-family: Arial, sans-serif;
 	color: #4a4a4a;
 }
 
-/* Gradio 컨테이너 스타일 */
+
 .container {
-	max-width: 900px !important;
+	max-width: 700px !important;
 	margin: auto;
 	padding: 20px;
 	background-color: #fffaf0;
@@ -18,16 +18,18 @@
 
 /* 탭 스타일 */
 .tab-menu {
+	display: flex;
+	gap: 10px;
 	margin-bottom: 20px;
 }
 
 .tab-link {
 	display: inline-block;
-	padding: 10px 15px;
+	padding: 10px 20px;
 	cursor: pointer;
 	border-bottom: 2px solid transparent;
 	margin-bottom: -2px;
-	color: #ff6b6b;
+	color: #634e0a;
 	background: none;
 	border: none;
 	font-family: inherit;
@@ -35,42 +37,78 @@
 }
 
 .tab-link.active {
-	border-bottom-color: #ff6b6b;
+	border-bottom-color: #975e5e;
 	color: #ff4757;
 }
+
+#recipe-output {
+	margin-top: 10px;
+	background-color: #fafafa;
+	padding: 10px;
+	border-radius: 5px;
+	resize: none;
+	overflow-y: auto;
+	border: 1px solid #e0e0e0;
+	height: 500px;
+	
+}
+
+#chat-input {
+	background-color: #fafafa;
+	display: flex;
+	resize: none;
+	border: 1px solid #e0e0e0;
+	height: 53px;
+	
+}
+
+
 
 /* 채팅 인터페이스 스타일 */
 .recipe-box textarea {
 	border: 2px solid #ffa07a;
 	border-radius: 15px;
-	height: 200px;
 	padding: 15px;
 	background-color: #fff9f3;
 	box-shadow: inset 0 0 10px rgba(255, 160, 122, 0.3);
-	width: 100%;
+	width: 80%;
 	box-sizing: border-box;
 	font-family: inherit;
 	font-size: inherit;
-	margin-bottom: 15px;
+	margin-bottom: 1px;
+	
 }
 
 /* 버튼 스타일 */
 button {
-	background-color: #ff9ff3;
+	background-color: #a51717;
 	color: white;
 	border: none;
 	padding: 12px 20px;
-	border-radius: 25px;
+	border-radius: 15px;
 	cursor: pointer;
 	transition: all 0.3s;
 	font-weight: bold;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	font-family: inherit;
 	font-size: inherit;
+	height: 50px;
 }
+.chat-container {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 10px;
+}
+.chat-input-container {
+	display: flex;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	justify-content: space-between;
+  }
 
 button:hover {
-	background-color: #ff85e8;
+	background-color: #eeb90a;
 	transform: translateY(-2px);
 	box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
@@ -136,10 +174,10 @@ input[type="range"]::-moz-range-thumb {
 
 /* 상태 텍스트박스 스타일 */
 .status {
-	background-color: #ffecb3;
+	background-color: #ffffff;
 	border: 2px solid #ffd180;
-	color: #ff6b6b;
-	padding: 15px;
+	color: #f0a5a5;
+	padding: 5px;
 	border-radius: 15px;
 	margin-top: 15px;
 	font-weight: bold;

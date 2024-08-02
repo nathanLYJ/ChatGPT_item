@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NathanLYJ CatChef</title>
+    <!-- 공통 CSS 파일 연결 -->
+    <link rel="stylesheet" href="CSS/common.css" />
+    <style>
+      /* 눈 효과 스타일 */
+      .snow {
+        position: absolute;
+        top: 0;
+        font-size: 24px;
+        opacity: 0.8;
+        animation: fall linear infinite;
+      }
+      @keyframes fall {
+        0% {
+          transform: translateY(-100px);
+        }
+        100% {
+          transform: translateY(100vh);
+        }
+      }
+      /* 눈 쌓이는 영역 스타일 */
+      #snow-pile {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <div class="sky" id="sky"></div>
+      <div class="container">
+        <span
+          id="txt-rotate"
+          data-period="2000"
+          data-rotate='["Welcome", "Cat Kitchen"]'
+        ></span>
+        <h1>The best chef</h1>
+        <!-- 소셜 아이콘 링크 -->
+        <p>모든 요리를 20분이내로 완성해드립니다.</p>
+        <p>요리 시작하면 음성으로 안내해드립니다.</p>
+        <div class="social-icons">
+          <a href="https://5225f8f0deb655c087.gradio.live">
+            <img
+              src="./free-animated-icon-cookbook-15578595.png"
+              class="icon"
+              alt="Chef"
+            />
+            <span class="icon-Chef">Chef</span>
+          </a>
+        </div>
+      </div>
+      <div id="snow-pile"></div>
+    </div>
+
+    <script>
+      // 페이지 로드 후 눈 효과 시작
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          // 눈 효과 관련 코드를 여기로 이동
+          const cookingTerms = [
+            "🥕", // Carrot
+            "🍅", // Tomato
+            "🥒", // Cucumber
+            "🍆", // Eggplant
+            "🌽", // Corn
+            "🥔", // Potato
+            "🍲", // Pot of food
+            "🍳", // Cooking
+            "🍚", // Rice
+            "🍜", // Noodles
+            "🍝", // Spaghetti
+            "🍣", // Sushi
+            "🥗", // Salad
+            "🍞", // Bread
+            "🧀", // Cheese
+            "🥩", // Meat
+            "🍗", // Poultry leg
+            "🍖", // Meat on bone
+            "🍤", // Fried shrimp
+            "🍰", // Cake
+          ];
+
+          const MAX_SNOW = 50; // 최대 눈(음식 아이콘) 수
+          let currentSnow = 0; // 현재 화면에 있는 눈의 수
+
+          function createSnow() {
+            if (currentSnow >= MAX_SNOW) return; // 최대 수에 도달하면 생성 중단
+
+            const sky = document.getElementById("sky");
+            const snow = document.createElement("div");
+            snow.className = "snow";
+            snow.style.left = `${Math.random() * 100}%`;
+            snow.textContent =
+              cookingTerms[Math.floor(Math.random() * cookingTerms.length)];
+            snow.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            sky.appendChild(snow);
+            currentSnow++; // 눈 개수 증가
+
+            snow.addEventListener("animationend", () => {
+              snow.remove();
+              currentSnow--; // 눈 개수 감소
+              addToSnowPile(snow.textContent);
+            });
+          }
+          // 눈 쌓기 함수
+          function addToSnowPile(text) {
+            const snowPile = document.getElementById("snow-pile");
+            const snowFlake = document.createElement("span");
+            snowFlake.textContent = text;
+            const fontSize = Math.floor(Math.random() * 9) + 12;
+            snowFlake.style.fontSize = `${fontSize}px`;
+            snowPile.appendChild(snowFlake);
+
+            if (snowPile.children.length > 100) {
+              snowPile.removeChild(snowPile.firstChild);
+            }
+
+            setTimeout(() => {
+              snowFlake.style.opacity = "0";
+              snowFlake.style.transition = "opacity 2s";
+              setTimeout(() => snowFlake.remove(), 2000);
+            }, 3000);
+          }
+          // 눈 생성 시작
+          setInterval(createSnow, 500);
+        }, 1000); // 1초 후에 눈 효과 시작
+      });
+
+      // 텍스트 회전 효과 클래스
+      var TxtRotate = function (el, toRotate, period) {
+        this.toRotate = toRotate;
+        this.el = el;
+        this.loopNum = 0;
+        this.period = parseInt(period, 10) || 2000;
+        this.txt = "";
+        this.tick();
+        this.isDeleting = false;
+      };
+
+      TxtRotate.prototype.tick = function () {
+        var i = this.loopNum % this.toRotate.length;
+        var fullTxt = this.toRotate[i];
+
+        if (this.isDeleting) {
+          this.txt = fullTxt.substring(0, this.txt.length - 1);
+        } else {
+          this.txt = fullTxt.substring(0, this.txt.length + 1);
+        }
+
+        this.el.innerHTML = '<span class="wrap">' + this.txt + "</span>";
+
+        var that = this;
+        var delta = 300 - Math.random() * 100;
+
+        if (this.isDeleting) {
+          delta /= 2;
+        }
+
+        if (!this.isDeleting && this.txt === fullTxt) {
+          delta = this.period;
+          this.isDeleting = true;
+        } else if (this.isDeleting && this.txt === "") {
+          this.isDeleting = false;
+          this.loopNum++;
+          delta = 500;
+        }
+        setTimeout(function () {
+          that.tick();
+        }, delta);
+      };
+
+      // 페이지 로드 시 실행되는 함수
+      window.onload = function () {
+        var element = document.getElementById("txt-rotate");
+        var toRotate = element.getAttribute("data-rotate");
+        var period = element.getAttribute("data-period");
+        if (toRotate) {
+          new TxtRotate(element, JSON.parse(toRotate), period);
+        }
+      };
+    </script>
+  </body>
+</html>
