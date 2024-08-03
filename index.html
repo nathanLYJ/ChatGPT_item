@@ -43,9 +43,14 @@
         <div class="music-settings">
           <div class="music-toggle">
             <label>배경 음악</label>
-            <input type="radio" name="background-music" id="music-on" checked />
+            <input type="radio" name="background-music" id="music-on" />
             <label for="music-on">음악 켜기</label>
-            <input type="radio" name="background-music" id="music-off" />
+            <input
+              type="radio"
+              name="background-music"
+              id="music-off"
+              checked
+            />
             <label for="music-off">음악 끄기</label>
           </div>
           <div class="music-volume">
@@ -85,8 +90,16 @@
           </div>
           <button class="submit-feedback">피드백 제출</button>
         </div>
+        <div class="feedback-reviews">
+          <h2>사용자 후기</h2>
+          <div id="reviews-container"></div>
+        </div>
       </div>
     </div>
+    <audio id="background-audio" loop>
+      <source src="path_to_background_music.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
     <script src="script.js"></script>
   </body>
 </html>

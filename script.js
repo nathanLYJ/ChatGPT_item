@@ -11,16 +11,42 @@ document.querySelectorAll(".tab-link").forEach((button) => {
 	  document
 		.getElementById(button.getAttribute("data-tab"))
 		.classList.add("active");
+  
+	  if (button.getAttribute("data-tab") === "feedback") {
+		loadReviews();
+	  }
 	});
+  });
+  
+  // 배경 음악 설정
+  const backgroundAudio = document.getElementById("background-audio");
+  const musicOn = document.getElementById("music-on");
+  const musicOff = document.getElementById("music-off");
+  
+  // 페이지 로드 시 음악 끄기 설정
+  document.addEventListener("DOMContentLoaded", () => {
+	backgroundAudio.pause();
+	backgroundAudio.volume = document.getElementById("background-volume").value / 100;
+  });
+  
+  musicOn.addEventListener("change", () => {
+	if (musicOn.checked) {
+	  backgroundAudio.play();
+	}
+  });
+  
+  musicOff.addEventListener("change", () => {
+	if (musicOff.checked) {
+	  backgroundAudio.pause();
+	}
   });
   
   // 배경 음악 볼륨 동기화
   const backgroundVolume = document.getElementById("background-volume");
-  const backgroundVolumeNumber = document.getElementById(
-	"background-volume-number"
-  );
+  const backgroundVolumeNumber = document.getElementById("background-volume-number");
   backgroundVolume.addEventListener("input", () => {
 	backgroundVolumeNumber.textContent = backgroundVolume.value;
+	backgroundAudio.volume = backgroundVolume.value / 100;
   });
   
   // 음성 안내 볼륨 동기화
@@ -83,15 +109,36 @@ document.querySelectorAll(".tab-link").forEach((button) => {
 	chatOutput.innerHTML = "";
   });
   
-  // 피드백 제출 버튼 기능
-  const submitFeedbackButton = document.querySelector(".submit-feedback");
-  const feedbackTextarea = document.getElementById("feedback-textarea");
-  submitFeedbackButton.addEventListener("click", () => {
-	alert("피드백이 제출되었습니다. 감사합니다!");
-	feedbackTextarea.value = "";
-	rating.value = 5;
-	ratingNumber.textContent = "5";
-  });
+   // 피드백 제출 버튼 기능
+   const submitFeedbackButton = document.querySelector(".submit-feedback");
+   const feedbackTextarea = document.getElementById("feedback-textarea");
+   submitFeedbackButton.addEventListener("click", async () => {
+	 const ratingValue = document.getElementById("rating").value;
+	 const comment = feedbackTextarea.value;
+	 const recipe = document.getElementById("recipe-output").innerText;
+   
+	 const feedback = {
+	   rating: ratingValue,
+	   comment: comment,
+	   recipe: recipe,
+	 };
+   
+	 const response = await fetch("http://localhost:3000/feedback", { // 여기에 실제 백엔드 서버 주소를 사용합니다.
+	   method: "POST",
+	   headers: { "Content-Type": "application/json" },
+	   body: JSON.stringify(feedback),
+	 });
+   
+	 if (response.ok) {
+	   alert("피드백이 제출되었습니다. 감사합니다!");
+	   feedbackTextarea.value = "";
+	   document.getElementById("rating").value = 5;
+	   document.getElementById("rating-number").textContent = "5";
+	   loadReviews();
+	 } else {
+	   alert("피드백 제출에 실패했습니다. 다시 시도해주세요.");
+	 }
+   });
   
   // Web Speech API를 사용하여 텍스트를 음성으로 변환
   function speak(text) {
@@ -104,7 +151,7 @@ document.querySelectorAll(".tab-link").forEach((button) => {
 	  const speech = new SpeechSynthesisUtterance();
 	  speech.text = text;
 	  speech.lang = "ko-KR"; // 한국어 설정
-	  speech.volume = document.getElementById("voice-volume").value / 100;
+	  speech.volume = document.getElementById("voice-volume").value / 100; // 슬라이더 값 사용
 	  speech.onend = resolve;
 	  speech.onerror = reject;
 	  window.speechSynthesis.speak(speech);
@@ -196,4 +243,33 @@ document.querySelectorAll(".tab-link").forEach((button) => {
 	  }
 	}
   }
+  
+  // 저장된 피드백을 로드하는 함수
+async function loadReviews() {
+	const response = await fetch("http://localhost:3000/reviews"); // 여기에 실제 백엔드 서버 주소를 사용합니다.
+	const reviews = await response.json();
+  
+	const sortedReviews = reviews.sort((a, b) => b.rating - a.rating);
+	const reviewsContainer = document.getElementById("reviews-container");
+	reviewsContainer.innerHTML = "";
+  
+	sortedReviews.forEach((review) => {
+	  const reviewElement = document.createElement("div");
+	  reviewElement.classList.add("review");
+  
+	  const ratingElement = document.createElement("div");
+	  ratingElement.classList.add("rating");
+	  ratingElement.textContent = `별점: ${review.rating}`;
+  
+	  const commentElement = document.createElement("div");
+	  commentElement.classList.add("comment");
+	  commentElement.textContent = review.comment;
+  
+	  reviewElement.appendChild(ratingElement);
+	  reviewElement.appendChild(commentElement);
+	  reviewsContainer.appendChild(reviewElement);
+	});
+  }
+  
+
   
