@@ -213,7 +213,6 @@ body {
   
   /* 고양이 요리사 아이콘 (가상의 요소) */
   .container::before {
-	content: '🐱👨‍🍳';
 	font-size: 40px;
 	display: block;
 	text-align: center;

@@ -47,10 +47,6 @@
   3. 제한된 재료로 최적화된 요리 제공
   4. UI 개선 애니매이션 추가
 
-## 타임라인
-
-![WBS](img/WBS.PNG)
-
 ## 와이어프레임
 
 ![와이어프레임](img/와이어프레임.PNG)
@@ -62,6 +58,15 @@
 
 * **APP**
 ![APP](img/레시피%20생성%20영상.gif)
+
+## 수정
+
+![와이어프레임](img/004.PNG)
+
+## 타임라인
+
+![WBS](img/005.PNG)
+
 
 ## 마자막
 
@@ -78,4 +83,4 @@
      * AI 툴 ChatGPT, Claude 3.5 모두 사용한 결과 "확실히 코드 작성 부분에서 Claude가 좋음, 이슈 해결 능력이 비교 불가할 정도로 좋음."
 
 [Main](https://nathanlyj.github.io/ChatGPT_item/)
-[CatChef](https://5225f8f0deb655c087.gradio.live")
+
