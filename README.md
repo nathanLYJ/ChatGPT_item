@@ -27,7 +27,7 @@
   3. 차별화 요소: AI 생성 레시피, 실시간 음성 안내, 사용자 맞춤형 경험
 
 * 구현 계획
-  1. 필요한 리소스: Python, Gradio, ChatGPT API, SQLite, gTTS, Pygame
+  1. 필요한 리소스: Python, ~~Gradio~~, ChatGPT API, ~~SQLite~~, ~~gTTS~~, ~~Pygame~~,Web Speech API
   2. 개발 일정:
      * 7월26-31일 APP기능 구현
      * 8월1-4일 테스트&수정
